@@ -1,11 +1,15 @@
 import cv2
 import numpy as np
-import math
 from matplotlib import pyplot as plt
 
 def deskew_image(image_path):
     # Load the image
     image = cv2.imread(image_path)
+    
+    # Check if the image was loaded correctly
+    if image is None:
+        raise FileNotFoundError(f"Unable to load image at {image_path}")
+    
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     
     # Edge detection
@@ -17,9 +21,11 @@ def deskew_image(image_path):
     # Calculate the skew angle
     angles = []
     if lines is not None:
-        for rho, theta in lines[:,0]:
+        for rho, theta in lines[:, 0]:
             angle = (theta - np.pi/2) * (180 / np.pi)
-            angles.append(angle)
+            # Consider only near-horizontal lines
+            if -45 < angle < 45:
+                angles.append(angle)
     if len(angles) == 0:
         return image  # No lines detected, return the original image
 
@@ -34,13 +40,13 @@ def deskew_image(image_path):
     return rotated
 
 # Path to the input image
-input_image_path = '/mnt/data/image.png'
+input_image_path = 'test_images/2.jpg'
 
 # Deskew the image
 deskewed_image = deskew_image(input_image_path)
 
 # Save or display the result
-output_image_path = '/mnt/data/deskewed_image.png'
+output_image_path = '/output/deskewed_image_1.jpg'
 cv2.imwrite(output_image_path, deskewed_image)
 
 # Display the images (optional)
